@@ -1,6 +1,9 @@
 ---
 // src/components/AdsForm.astro
 // Componente de formulario exclusivo para la Landing Page de Google Ads
+
+const makeWebhookAds = import.meta.env.PUBLIC_MAKE_WEBHOOK_ADS || "https://hook.eu1.make.com/YOUR_NEW_ADS_WEBHOOK_HERE";
+const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAADGdWFU5FsRD_Aa5";
 ---
 
 <section id="ads-preorder" class="py-16 bg-cream">
@@ -13,7 +16,7 @@
     </div>
 
     <!-- Formulario optimizado para conversión (1 columna en móvil, 2 en md+) -->
-    <form id="ads-order-form" class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
+    <form id="ads-order-form" data-webhook={makeWebhookAds} class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
 
         <div class="flex flex-col gap-1.5">
@@ -59,11 +62,9 @@
 
       <div class="mt-7 text-center">
         <!-- 
-          CF Turnstile: Reemplaza 'data-sitekey' con tu clave real de producción de Cloudflare Turnstile.
-          El key actual es el del entorno B2B.
+          CF Turnstile: Variable de entorno configurada en Vercel
         -->
-        <!-- ── CLAVE SITIO DE TURNSTILE ── -->
-        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey="0x4AAAAAADGdWFU5FsRD_Aa5"></div>
+        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey}></div>
         
         <div class="flex flex-col-reverse sm:flex-row items-center justify-center gap-4">
           <button type="submit" class="btn btn-red px-10 py-3.5 font-cap text-base w-full sm:w-auto">
@@ -120,9 +121,7 @@
       };
 
       try {
-        // ── DIRECCIÓN DEL WEBHOOK DE MAKE ──
-        // Reemplaza esta URL con la dirección de tu escenario exclusivo de Google Ads en Make
-        const webhookUrl = 'https://hook.eu1.make.com/YOUR_NEW_ADS_WEBHOOK_HERE';
+        const webhookUrl = form.dataset.webhook;
         
         const response = await fetch(webhookUrl, {
           method: 'POST',

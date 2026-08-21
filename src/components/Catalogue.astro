@@ -16,6 +16,9 @@ export interface Props {
 
 const { products } = Astro.props;
 
+const makeWebhookCat = import.meta.env.PUBLIC_MAKE_WEBHOOK_CATALOGUE || "https://hook.eu1.make.com/llk7hmjum559gzf5wg7523d3tf4eg6dv";
+const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAADGdWFU5FsRD_Aa5";
+
 const processedProducts = products.map((product) => {
   let quantity = 1;
   let showUnitPrice = false;
@@ -170,7 +173,7 @@ const processedProducts = products.map((product) => {
     </div>
 
     <!-- Form -->
-    <form id="order-form" onsubmit="handleSubmit(event)" class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
+    <form id="order-form" data-webhook={makeWebhookCat} onsubmit="handleSubmit(event)" class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
       <div class="grid sm:grid-cols-2 gap-5">
 
         <div class="flex flex-col gap-1.5">
@@ -216,7 +219,7 @@ const processedProducts = products.map((product) => {
 
       <div class="mt-7 text-center">
         <!-- Cloudflare Turnstile Widget -->
-        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey="0x4AAAAAADGdWFU5FsRD_Aa5" data-callback="onTurnstileSuccess"></div>
+        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-callback="onTurnstileSuccess"></div>
         <div class="flex flex-col-reverse sm:flex-row items-center justify-center gap-4">
           <button type="button" onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="btn btn-outline px-8 py-3.5 font-cap text-base bg-white hover:bg-[#80131d]">
             ↑ Keep Shopping
@@ -516,7 +519,8 @@ async function handleSubmit(e) {
   };
 
   try {
-    const response = await fetch('https://hook.eu1.make.com/llk7hmjum559gzf5wg7523d3tf4eg6dv', {
+    const webhookUrl = e.target.dataset.webhook;
+    const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
