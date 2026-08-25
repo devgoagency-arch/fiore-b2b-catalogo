@@ -156,7 +156,7 @@ try {
 } catch (error) {
   console.error('[WC API] Network or fetch error. Falling back to BASE_PRODUCTS_MOCK.', error);
   finalProducts = [{
-    id: 'debug-3', sku: 'ERR-3', name: `Fetch Exception: ${error.message}`, description: `URL: ${WC_API_URL} | Error: ${error.toString()}`, caseSize: 'N/A', price: 0, img: null, category: 'Error'
+    id: 'debug-3', sku: 'ERR-3', name: `Fetch Exception: ${error.message}`, description: `Error: ${error.toString()}`, caseSize: 'N/A', price: 0, img: null, category: 'Error'
   }];
 }
 ---
