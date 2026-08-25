@@ -86,6 +86,12 @@ try {
           ? item.categories[0].name 
           : "Uncategorized";
 
+        // Excluir categoría Seasonal antes de procesar
+        const excludedCategories = ['seasonal'];
+        if (excludedCategories.some(cat => finalCategory.toLowerCase().includes(cat))) {
+          return acc;
+        }
+
         let rawContent = item.description ? item.description : (item.short_description || "");
         
         let plainDesc = "";
@@ -111,6 +117,9 @@ try {
             caseSize = caseAttr.options[0];
           }
         }
+        
+        const price = parseFloat(item.price) || 0;
+        if (price <= 0) return acc;
 
         const mappedProd = {
           id: item.id,
@@ -118,7 +127,7 @@ try {
           name: item.name.replace(/&amp;/g, '&'),
           description: plainDesc,
           caseSize: caseSize,
-          price: parseFloat(item.price) || 0,
+          price: price,
           img: item.images && item.images.length > 0 ? item.images[0].src : null,
           category: finalCategory
         };
