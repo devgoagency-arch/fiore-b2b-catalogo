@@ -245,7 +245,7 @@ const processedProducts = products.map((product) => {
 </section>
 
 <!-- Send props to global window to bypass scoping -->
-<script is:inline set:html={`window.BASE_PRODUCTS = ${JSON.stringify(processedProducts)};`} />
+<script is:inline set:html={`window.BASE_PRODUCTS = ${JSON.stringify(processedProducts).replace(/</g, '\\u003c')};`} />
 
 <script is:inline>
 // ── Product data ─────────────────────────────────────────────

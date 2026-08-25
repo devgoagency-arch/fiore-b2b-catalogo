@@ -41,9 +41,9 @@ let finalProducts = BASE_PRODUCTS_MOCK;
 
 try {
   // WooCommerce Server-Side Fetch
-  const WC_API_URL = import.meta.env.WC_API_URL;
-  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY;
-  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET;
+  const WC_API_URL = import.meta.env.WC_API_URL || (typeof process !== 'undefined' ? process.env.WC_API_URL : null);
+  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_KEY : null);
+  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_SECRET : null);
 
   if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
     const authHeader = 'Basic ' + btoa(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`);
