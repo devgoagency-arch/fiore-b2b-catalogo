@@ -140,9 +140,10 @@ try {
 
       console.log(`[WC API] Successfully fetched and parsed ${finalProducts.length} published products.`);
     } else {
-      console.warn(`[WC API] Failed to fetch data. Falling back to mock data.`);
+      const errText = await res.text().catch(() => 'No text');
+      console.warn(`[WC API] Failed to fetch data. Status: ${res.status}`);
       finalProducts = [{
-        id: 'debug-1', sku: 'ERR-1', name: `API Fetch Failed: Res OK = false, Length = ${allData.length}`, description: 'Failed to fetch from WooCommerce', caseSize: 'N/A', price: 0, img: null, category: 'Error'
+        id: 'debug-1', sku: 'ERR-1', name: `API Error: Status ${res.status}`, description: errText.substring(0, 100), caseSize: 'N/A', price: 0, img: null, category: 'Error'
       }];
     }
   } else {
