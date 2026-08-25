@@ -141,10 +141,20 @@ try {
       console.log(`[WC API] Successfully fetched and parsed ${finalProducts.length} published products.`);
     } else {
       console.warn(`[WC API] Failed to fetch data. Falling back to mock data.`);
+      finalProducts = [{
+        id: 'debug-1', sku: 'ERR-1', name: `API Fetch Failed: Res OK = false, Length = ${allData.length}`, description: 'Failed to fetch from WooCommerce', caseSize: 'N/A', price: 0, img: null, category: 'Error'
+      }];
     }
+  } else {
+    finalProducts = [{
+      id: 'debug-2', sku: 'ERR-2', name: `Missing Env Vars: URL=${!!WC_API_URL} KEY=${!!WC_CONSUMER_KEY} SECRET=${!!WC_CONSUMER_SECRET}`, description: 'Check Vercel env vars', caseSize: 'N/A', price: 0, img: null, category: 'Error'
+    }];
   }
 } catch (error) {
   console.error('[WC API] Network or fetch error. Falling back to BASE_PRODUCTS_MOCK.', error);
+  finalProducts = [{
+    id: 'debug-3', sku: 'ERR-3', name: `Fetch Exception: ${error.message}`, description: error.toString(), caseSize: 'N/A', price: 0, img: null, category: 'Error'
+  }];
 }
 ---
 
