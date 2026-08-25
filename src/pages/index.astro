@@ -157,9 +157,10 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
     }];
   }
 } catch (error: any) {
-  console.error('[WC API] Excepción atrapada. Usando mock data.', error);
+  console.error('[WC API] Excepción atrapada.', error);
+  const cause = error.cause ? error.cause.toString() : 'No cause attached';
   finalProducts = [{
-    id: 'debug-3', sku: 'ERR-3', name: `Fetch Exception: ${error.message}`, description: `Error: ${error.toString()}`, caseSize: 'N/A', price: 0, img: null, category: 'Error'
+    id: 'debug-3', sku: 'ERR-3', name: `Fetch failed`, description: `Cause: ${cause} | Msg: ${error.message}`, caseSize: 'N/A', price: 0, img: null, category: 'Error'
   }];
 }
 ---
