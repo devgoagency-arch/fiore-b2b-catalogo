@@ -42,10 +42,11 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
   const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_KEY : '');
   const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_SECRET : '');
 
-  if (rawApiUrl && !rawApiUrl.startsWith('http')) {
-    rawApiUrl = 'https://' + rawApiUrl;
+  if (rawApiUrl) {
+    // Limpiamos cualquier prefijo mal escrito (como ttps:// o http://)
+    rawApiUrl = rawApiUrl.replace(/^https?:\/\//i, '').replace(/^ttps?:\/\//i, '');
   }
-  const WC_API_URL = rawApiUrl.replace(/\/$/, '');
+  const WC_API_URL = rawApiUrl ? 'https://' + rawApiUrl.replace(/\/$/, '') : '';
 
   if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
     let page = 1;
