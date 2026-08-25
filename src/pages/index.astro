@@ -37,67 +37,72 @@ const BASE_PRODUCTS_MOCK = [
   }
 ];
 
-let finalProducts = BASE_PRODUCTS_MOCK;
+let finalProducts = BASE_PRODUCTS_MOCK;try {
+  let rawApiUrl = import.meta.env.WC_API_URL || (typeof process !== 'undefined' ? process.env.WC_API_URL : '');
+  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_KEY : '');
+  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_SECRET : '');
 
-try {
-  // WooCommerce Server-Side Fetch
-  let rawApiUrl = import.meta.env.WC_API_URL || (typeof process !== 'undefined' ? process.env.WC_API_URL : null);
-  if (rawApiUrl && !rawApiUrl.startsWith('http')) rawApiUrl = 'https://' + rawApiUrl;
-  const WC_API_URL = rawApiUrl;
-  const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_KEY : null);
-  const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_SECRET : null);
+  if (rawApiUrl && !rawApiUrl.startsWith('http')) {
+    rawApiUrl = 'https://' + rawApiUrl;
+  }
+  const WC_API_URL = rawApiUrl.replace(/\/$/, '');
 
   if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
-    const authHeader = 'Basic ' + btoa(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`);
-    let allData = [];
     let page = 1;
-    let hasMore = true;
+    let totalPages = 1;
+    let allData = [];
 
-    while (hasMore) {
-      let fetchUrl = import.meta.env.WC_API_URL + `/products?per_page=100&page=${page}&status=publish&orderby=menu_order&order=asc`;
+    const credentials = Buffer.from(`${WC_CONSUMER_KEY}:${WC_CONSUMER_SECRET}`).toString('base64');
+    const headers = {
+      'Authorization': `Basic ${credentials}`,
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Accept': 'application/json'
+    };
+
+    let fetchError = null;
+    let fetchErrorText = '';
+
+    while (page <= totalPages) {
+      const fetchUrl = `${WC_API_URL}/products?per_page=100&page=${page}&status=publish&orderby=menu_order&order=asc`;
+      console.log(`[WC API] Fetching page ${page} from ${fetchUrl}`);
       
-      console.log("Intentando conectar a:", fetchUrl);
+      const res = await fetch(fetchUrl, { headers });
 
-      const res = await fetch(fetchUrl, {
-        method: 'GET',
-        headers: {
-          'Authorization': authHeader,
-          'Content-Type': 'application/json',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'application/json, text/plain, */*'
-        }
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        allData = allData.concat(data);
-        if (data.length < 100) {
-          hasMore = false;
-        } else {
-          page++;
-        }
-      } else {
-        console.warn(`[WC API] Returned status ${res.status}. Stopping fetch.`);
-        hasMore = false;
+      if (!res.ok) {
+        fetchErrorText = await res.text().catch(() => 'No text');
+        fetchError = res.status;
+        console.error(`[WC API] ERROR en página ${page}. Status: ${res.status}. Respuesta: ${fetchErrorText}`);
+        break; // Stop fetching on error
       }
+
+      const data = await res.json();
+      allData = allData.concat(data);
+
+      const totalPagesHeader = res.headers.get('x-wp-totalpages');
+      if (totalPagesHeader) {
+        totalPages = parseInt(totalPagesHeader, 10);
+      } else {
+        if (data.length < 100) break;
+      }
+      
+      page++;
     }
 
-    if (allData.length > 0) {
+    if (fetchError) {
+      finalProducts = [{
+        id: 'debug-1', sku: 'ERR-1', name: `API Error: Status ${fetchError}`, description: fetchErrorText.substring(0, 100), caseSize: 'N/A', price: 0, img: null, category: 'Error'
+      }];
+    } else if (allData.length > 0) {
       finalProducts = allData.reduce((acc: any[], item: any) => {
-
-        // Get the product's primary category for the pill
-        // Decode HTML entities (e.g. &amp; → &) to match browser rendering
         const finalCategory = item.categories && item.categories.length > 0 
           ? item.categories[0].name.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#039;/g, "'").replace(/&quot;/g, '"')
           : "Uncategorized";
 
-        // Excluir categoría Holiday Seasonal
         if (finalCategory.toLowerCase().includes('seasonal')) {
           return acc;
         }
 
         let rawContent = item.description ? item.description : (item.short_description || "");
-        
         let plainDesc = "";
         if (rawContent) {
           let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
@@ -105,7 +110,6 @@ try {
         }
           
         let caseSize = "N/A";
-        // Regex to match "Case Size: value" dropping the period bound as it caused N/A faults
         const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
         const match = plainDesc.match(caseRegex);
 
@@ -121,40 +125,39 @@ try {
             caseSize = caseAttr.options[0];
           }
         }
-        
-        const mappedProd = {
-          id: item.id,
-          sku: item.sku || `WC-${item.id}`,
-          name: item.name.replace(/&amp;/g, '&'),
-          description: plainDesc,
-          caseSize: caseSize,
-          price: parseFloat(item.price) || 0,
-          img: item.images && item.images.length > 0 ? item.images[0].src : null,
-          category: finalCategory,
-          brand: item.brands && item.brands.length > 0
-            ? item.brands[0].name
-            : (item.attributes?.find((a: any) => a.name.toLowerCase() === 'brand')?.options?.[0] || null)
-        };
-        
-        acc.push(mappedProd);
+
+        let finalPrice = parseFloat(item.price) || 0;
+
+        if (finalPrice > 0) {
+          const mappedProd = {
+            id: item.id,
+            sku: item.sku || `WC-${item.id}`,
+            name: item.name ? item.name.replace(/&amp;/g, '&') : '',
+            description: plainDesc,
+            caseSize: caseSize,
+            price: finalPrice,
+            img: item.images && item.images.length > 0 ? item.images[0].src : null,
+            category: finalCategory,
+            brand: item.brands && item.brands.length > 0
+              ? item.brands[0].name
+              : (item.attributes?.find((a: any) => a.name.toLowerCase() === 'brand')?.options?.[0] || null)
+          };
+          acc.push(mappedProd);
+        }
         return acc;
       }, []);
 
-      console.log(`[WC API] Successfully fetched and parsed ${finalProducts.length} published products.`);
+      console.log(`[WC API] ${finalProducts.length} productos procesados correctamente.`);
     } else {
-      const errText = await res.text().catch(() => 'No text');
-      console.warn(`[WC API] Failed to fetch data. Status: ${res.status}`);
-      finalProducts = [{
-        id: 'debug-1', sku: 'ERR-1', name: `API Error: Status ${res.status}`, description: errText.substring(0, 100), caseSize: 'N/A', price: 0, img: null, category: 'Error'
-      }];
+      console.warn(`[WC API] WooCommerce devolvió un array vacío. Usando mock data.`);
     }
   } else {
     finalProducts = [{
       id: 'debug-2', sku: 'ERR-2', name: `Missing Env Vars: URL=${!!WC_API_URL} KEY=${!!WC_CONSUMER_KEY} SECRET=${!!WC_CONSUMER_SECRET}`, description: 'Check Vercel env vars', caseSize: 'N/A', price: 0, img: null, category: 'Error'
     }];
   }
-} catch (error) {
-  console.error('[WC API] Network or fetch error. Falling back to BASE_PRODUCTS_MOCK.', error);
+} catch (error: any) {
+  console.error('[WC API] Excepción atrapada. Usando mock data.', error);
   finalProducts = [{
     id: 'debug-3', sku: 'ERR-3', name: `Fetch Exception: ${error.message}`, description: `Error: ${error.toString()}`, caseSize: 'N/A', price: 0, img: null, category: 'Error'
   }];
