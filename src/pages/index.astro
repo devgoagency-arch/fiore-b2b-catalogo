@@ -82,13 +82,13 @@ try {
       finalProducts = allData.reduce((acc: any[], item: any) => {
 
         // Get the product's primary category for the pill
+        // Decode HTML entities (e.g. &amp; → &) to match browser rendering
         const finalCategory = item.categories && item.categories.length > 0 
-          ? item.categories[0].name 
+          ? item.categories[0].name.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#039;/g, "'").replace(/&quot;/g, '"')
           : "Uncategorized";
 
-        // Excluir categoría Seasonal antes de procesar
-        const excludedCategories = ['seasonal'];
-        if (excludedCategories.some(cat => finalCategory.toLowerCase().includes(cat))) {
+        // Excluir categoría Holiday Seasonal
+        if (finalCategory.toLowerCase().includes('seasonal')) {
           return acc;
         }
 
@@ -118,18 +118,18 @@ try {
           }
         }
         
-        const price = parseFloat(item.price) || 0;
-        if (price <= 0) return acc;
-
         const mappedProd = {
           id: item.id,
           sku: item.sku || `WC-${item.id}`,
           name: item.name.replace(/&amp;/g, '&'),
           description: plainDesc,
           caseSize: caseSize,
-          price: price,
+          price: parseFloat(item.price) || 0,
           img: item.images && item.images.length > 0 ? item.images[0].src : null,
-          category: finalCategory
+          category: finalCategory,
+          brand: item.brands && item.brands.length > 0
+            ? item.brands[0].name
+            : (item.attributes?.find((a: any) => a.name.toLowerCase() === 'brand')?.options?.[0] || null)
         };
         
         acc.push(mappedProd);
@@ -151,22 +151,28 @@ try {
   <!-- ════════════════════════════════════════════════════════════
        2 · HERO — SPLIT LAYOUT
   ════════════════════════════════════════════════════════════════ -->
-  <section class="flex flex-col sm:flex-row overflow-hidden min-h-[500px] sm:max-h-[600px]">
-    <div class="hero-left relative flex items-center justify-center text-center w-full sm:w-5/12 px-6 sm:px-10 md:px-14 py-12 sm:py-14 flex-shrink-0 min-h-[300px] sm:min-h-[500px]">
-      <div class="absolute inset-0 flex items-end justify-start pointer-events-none overflow-hidden">
-        <img src="img/olives-4 (1).png" alt="Decoración de fondo" class="w-56 opacity-60 mb-2 ml-4 parallax parallax-1">
+  <section class="flex flex-col sm:flex-row overflow-hidden min-h-[auto] sm:min-h-[500px] sm:max-h-[600px]">
+    <div class="relative flex items-center justify-center text-center w-full sm:w-5/12 px-6 sm:px-10 md:px-14 py-10 sm:py-14 flex-shrink-0 min-h-[250px] sm:min-h-[500px]" style="background:#80131d; overflow:hidden;">
+      <!-- Olive plant: doubled size, bleeding off the left -->
+      <div class="absolute inset-0 flex items-end justify-start pointer-events-none" style="overflow:visible;">
+        <img src="img/olives-4 (1).png" alt="" class="parallax parallax-1" style="width:28rem; opacity:0.22; margin-bottom:-1rem; margin-left:-4rem;">
       </div>
       <div class="relative z-10 max-w-xs mx-auto">
-        <h1 class="font-cap text-white leading-snug mb-4" style="font-size:clamp(22px,3.5vw,30px)">
+        <h1 class="font-cap text-white leading-snug mb-4" style="font-size:clamp(18px,3.5vw,32px)">
           Explore Our Full Product Catalogue
         </h1>
-        <div class="inline-block px-4 py-2 mt-2 rounded font-rob text-sm font-bold tracking-wide" style="background:#80131d; color:white;">
-          Premium Mediterranean Foods
-        </div>
+        <a href="#catalogue" class="inline-block px-5 py-2.5 mt-2 rounded-full font-rob text-sm font-bold tracking-widest uppercase transition-all hover:opacity-90 hover:shadow-lg" style="background:white; color:#80131d;">
+          Our Selection
+        </a>
       </div>
     </div>
-    <div class="relative flex-1 overflow-hidden">
-      <img src="img/fiore-foods-holiday-seasonal-2026.jpg" alt="Specialty gourmet foods spread" class="absolute inset-0 w-full h-full object-cover">
+    <!-- Desktop Image -->
+    <div class="hidden sm:block relative flex-1 overflow-hidden">
+      <img src="/img/banner-fiore-foods-canada.webp" alt="Specialty gourmet foods spread" class="absolute inset-0 w-full h-full object-cover object-center">
+    </div>
+    <!-- Mobile Image -->
+    <div class="block sm:hidden w-full h-64 relative overflow-hidden flex-shrink-0">
+      <img src="/img/banner-fiore-foods-canada-mobile.webp" alt="Specialty gourmet foods spread" class="absolute inset-0 w-full h-full object-cover object-center">
     </div>
   </section>
 
@@ -174,27 +180,27 @@ try {
        3 · INSTRUCTION BANNER
   ════════════════════════════════════════════════════════════════ -->
   <section style="background:#acb370">
-    <div class="max-w-5xl mx-auto px-6 py-6">
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-5 sm:gap-0">
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+    <div class="max-w-5xl mx-auto px-6 py-8">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-center gap-6 sm:gap-0">
+        <div class="flex items-center justify-start gap-4 sm:flex-1 sm:justify-center w-full">
           <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">1</div>
-          <div>
+          <div class="text-left">
             <p class="font-cap text-white text-lg font-bold">Select Products</p>
             <p class="text-white/70 text-base font-rob">Choose case quantities from the catalogue</p>
           </div>
         </div>
         <div class="arrow-step hidden sm:block px-3">›</div>
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+        <div class="flex items-center justify-start gap-4 sm:flex-1 sm:justify-center w-full">
           <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">2</div>
-          <div>
+          <div class="text-left">
             <p class="font-cap text-white text-lg font-bold">Enter Your Info</p>
             <p class="text-white/70 text-base font-rob">Fill in your contact &amp; company details</p>
           </div>
         </div>
         <div class="arrow-step hidden sm:block px-3">›</div>
-        <div class="flex items-center gap-4 sm:flex-1 sm:justify-center">
+        <div class="flex items-center justify-start gap-4 sm:flex-1 sm:justify-center w-full">
           <div class="w-12 h-12 rounded-full flex items-center justify-center font-cap font-bold flex-shrink-0" style="background:rgba(255,255,255,.25); color:#fff; font-size:1.4rem">3</div>
-          <div>
+          <div class="text-left">
             <p class="font-cap text-white text-lg font-bold">Send Pre-Order</p>
             <p class="text-white/70 text-base font-rob">Submit — we'll prepare your Sales Order</p>
           </div>
@@ -205,8 +211,8 @@ try {
 
   <section class="max-w-4xl mx-auto px-6 py-12 text-center">
     <p class="text-[18px] font-rob text-gray-700 leading-relaxed">
-      <strong style="color:#80131d">Discover our exquisite selection of products — </strong>
-      curated to bring the best of the Mediterranean directly to your business. Browse through all our categories and find the perfect additions for your customers.
+      <strong style="color:#80131d">Fiore Foods</strong> is a specialty food distributor located in Toronto, Ontario. 
+      We are committed to providing the finest products from around the world.
     </p>
   </section>
 

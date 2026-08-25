@@ -11,6 +11,7 @@ export interface Props {
     price: number;
     img: string;
     category: string;
+    brand: string | null;
   }[];
 }
 
@@ -77,15 +78,15 @@ const processedProducts = products.map((product) => {
     </div>
 
     <!-- Products pre-rendered by Astro, visibility toggled by JS -->
-    <div id="product-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-8">
       {processedProducts.map(p => (
-        <div class="prow bg-white rounded-3xl overflow-hidden flex flex-row flex-wrap sm:flex-nowrap items-center p-5 sm:p-6 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category}>
+        <div class="prow bg-white rounded-3xl overflow-hidden flex flex-col sm:flex-row items-center p-5 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category}>
 
           <!-- Product image -->
-          <div class="w-32 h-32 sm:w-44 sm:h-44 flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
+          <div class="w-full h-48 sm:w-44 sm:h-44 flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
             {p.img ? (
               <Image src={p.img} alt={p.name} width={300} height={300} 
-                class="absolute inset-0 w-full h-full object-cover cursor-pointer transition-transform hover:scale-105" 
+                class="absolute inset-0 w-full h-full object-contain cursor-pointer transition-transform hover:scale-105" 
                 data-zoom-src={p.img} />
             ) : (
               <div class="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Image</div>
@@ -93,38 +94,40 @@ const processedProducts = products.map((product) => {
           </div>
 
           <!-- Info + controls -->
-          <div class="flex-1 min-w-0 flex flex-col justify-start items-start w-full gap-3 sm:gap-4">
-            <h3 class="font-cap text-carbon leading-snug text-sm sm:text-base lg:text-lg font-bold w-full">{p.name}</h3>
-            <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed clamp2 w-full" set:html={p.description}></p>
-            <button type="button" onclick={`openDetailsModal(${p.id}); return false;`} class="btn btn-red px-4 py-1 text-[13px]">Details</button>
-
-            <!-- Bottom Row: Case Size | Price | Qty -->
-            <div class="w-full flex flex-row flex-wrap items-center justify-between gap-y-3 gap-x-2 flex-shrink-0">
-              
-              <!-- Case Size -->
-              <div class="font-rob text-[12px] sm:text-sm font-medium whitespace-nowrap" style="color:#888">
+          <div class="flex-1 min-w-0 flex flex-col justify-start items-start w-full h-full">
+            
+            <!-- Top section: Title, Case Size, Desc, Details -->
+            <div class="w-full mb-4">
+              <h3 class="font-cap leading-snug text-sm sm:text-base lg:text-lg font-bold w-full mb-1" style="color:#80131d">{p.name}</h3>
+              <div class="font-rob text-[12px] sm:text-[13px] font-medium mb-2.5" style="color:#888">
                 <span class="font-bold text-brand">Case Size:</span> {p.caseSize}
               </div>
-
-              <!-- Price -->
-              <div class="flex flex-col text-center whitespace-nowrap justify-center">
-                <div>
-                  <span class="font-cap text-brand text-[1.1rem] sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
-                  <span class="font-rob text-gray-400 text-[10px] sm:text-sm"> / case</span>
-                </div>
-                {p.showUnitPrice && <span class="text-[10px] sm:text-sm text-gray-500 mt-0.5">${p.unitPrice} / unit</span>}
-              </div>
-
-              <!-- Qty stepper -->
-              <div class="flex items-center gap-1 rounded-full p-1 ml-auto sm:ml-0" style="background:#f5f3ef">
-                <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">−</button>
-                <input id={`qty-${p.id}`} type="number" value="0" min="0" max="999" aria-label={`Quantity for ${p.name}`} onchange={`setQty(${p.id}, parseInt(this.value)||0)`} oninput={`setQty(${p.id}, parseInt(this.value)||0)`} class="w-12 text-center bg-transparent font-bold text-base font-rob focus:outline-none" style="color:#1a1a1a" />
-                <button onclick={`changeQty(${p.id},+1)`} type="button" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xl leading-none select-none transition-all duration-150" style="background:#80131d;color:white;box-shadow:0 1px 4px rgba(128,19,29,.3)" onmouseenter="this.style.background='#a81624'" onmouseleave="this.style.background='#80131d'" aria-label="Increase">+</button>
-              </div>
-
-              <!-- Line total (shown when qty > 0) -->
-              <div id={`line-${p.id}`} class="hidden text-sm font-rob text-right" style="color:#555">Subtotal: $0.00 CAD</div>
+              <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed clamp2 w-full mb-3" set:html={p.description}></p>
+              <button type="button" onclick={`openDetailsModal(${p.id}); return false;`} class="btn btn-red px-4 py-1 text-[12px]">Details</button>
             </div>
+
+            <!-- Bottom Row: Price & Action (Pushed to bottom) -->
+            <div class="w-full flex flex-row items-end justify-between mt-auto pt-4 border-t border-gray-100 gap-2">
+              
+              <!-- Price (Left aligned) -->
+              <div class="flex flex-col text-left justify-center">
+                <div>
+                  <span class="font-cap text-brand text-xl sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
+                  <span class="font-rob text-gray-400 text-[11px] sm:text-sm"> / case</span>
+                </div>
+                {p.showUnitPrice && <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} / unit</span>}
+              </div>
+
+              <!-- Qty stepper (Right aligned) -->
+              <div class="flex items-center gap-1 rounded-full p-1 flex-shrink-0" style="background:#f5f3ef">
+                <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">−</button>
+                <input id={`qty-${p.id}`} type="number" value="0" min="0" max="999" aria-label={`Quantity for ${p.name}`} onchange={`setQty(${p.id}, parseInt(this.value)||0)`} oninput={`setQty(${p.id}, parseInt(this.value)||0)`} class="w-10 sm:w-12 text-center bg-transparent font-bold text-sm sm:text-base font-rob focus:outline-none" style="color:#1a1a1a" />
+                <button onclick={`changeQty(${p.id},+1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:#80131d;color:white;box-shadow:0 1px 4px rgba(128,19,29,.3)" onmouseenter="this.style.background='#a81624'" onmouseleave="this.style.background='#80131d'" aria-label="Increase">+</button>
+              </div>
+            </div>
+
+            <!-- Line total (shown when qty > 0) -->
+            <div id={`line-${p.id}`} class="hidden w-full text-sm font-rob text-right mt-3" style="color:#555">Subtotal: $0.00 CAD</div>
           </div>
         </div>
       ))}
@@ -294,6 +297,12 @@ function filterProducts(cat) {
   currentPage = 1;
   renderFilters();
   renderProducts(false);
+  // Scroll to top of catalogue section
+  const catalogue = document.getElementById('catalogue');
+  if (catalogue) {
+    const offset = catalogue.getBoundingClientRect().top + window.scrollY - 100;
+    window.scrollTo({ top: offset, behavior: 'smooth' });
+  }
 }
 
 function loadMoreProducts() {
@@ -339,18 +348,48 @@ function renderProducts(append = false) {
   }
 }
 
+function showToast(message) {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'fixed bottom-6 right-6 sm:bottom-24 sm:right-6 z-[200] flex flex-col gap-2 pointer-events-none';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'bg-[#80131d] text-white px-4 py-3 rounded-lg shadow-xl transform transition-all duration-300 translate-y-4 opacity-0 flex items-center gap-3 font-rob text-sm border border-[#6b0f17]';
+  toast.innerHTML = `
+    <svg class="w-5 h-5 text-white flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+    <div class="leading-tight">${message}</div>
+  `;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => {
+    toast.classList.remove('translate-y-4', 'opacity-0');
+  });
+
+  setTimeout(() => {
+    toast.classList.add('opacity-0', 'translate-y-2');
+    setTimeout(() => toast.remove(), 300);
+  }, 2500);
+}
+
 // ── Cart calculations ────────────────────────────────────────
 function changeQty(id, delta) {
   const p  = PRODUCTS.find(x => x.id === id);
   if (!p) return;
+  const oldQty = p.qty;
   p.qty    = Math.max(0, p.qty + delta);
+  if (p.qty > oldQty) showToast(`<strong>${p.name}</strong> added to cart`);
   syncProduct(p);
   syncGlobal();
 }
 function setQty(id, val) {
   const p  = PRODUCTS.find(x => x.id === id);
   if (!p) return;
+  const oldQty = p.qty;
   p.qty    = Math.max(0, isNaN(val) ? 0 : val);
+  if (p.qty > oldQty) showToast(`<strong>${p.name}</strong> added to cart`);
   syncProduct(p);
   syncGlobal();
 }
@@ -585,6 +624,16 @@ function openDetailsModal(id) {
   document.getElementById('details-size').textContent = p.caseSize;
   document.getElementById('details-desc').innerHTML = p.description;
   document.getElementById('details-price').textContent = '$' + p.price.toFixed(2);
+  
+  // Unit price
+  const unitWrap = document.getElementById('details-unit-price-wrap');
+  const unitSpan = document.getElementById('details-unit-price');
+  if (p.showUnitPrice && unitWrap && unitSpan) {
+    unitSpan.textContent = '$' + p.unitPrice;
+    unitWrap.classList.remove('hidden');
+  } else if (unitWrap) {
+    unitWrap.classList.add('hidden');
+  }
   
   const modalQty = document.getElementById('modal-qty');
   if(modalQty) {
