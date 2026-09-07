@@ -100,7 +100,7 @@ const processedProducts = products.map((product) => {
             <div class="w-full mb-4">
               <h3 class="font-cap leading-snug text-sm sm:text-base lg:text-lg font-bold w-full mb-1" style="color:#80131d">{p.name}</h3>
               <div class="font-rob text-[12px] sm:text-[13px] font-medium mb-2.5" style="color:#888">
-                <span class="font-bold text-brand">Case Size:</span> {p.caseSize}
+                <span class="font-bold text-brand">Case Size:</span> {p.caseSize} &nbsp;&bull;&nbsp; <span class="font-mono">{p.sku}</span>
               </div>
               <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed clamp2 w-full mb-3" set:html={p.description}></p>
               <button type="button" onclick={`openDetailsModal(${p.id}); return false;`} class="btn btn-red px-4 py-1 text-[12px]">Details</button>
@@ -622,6 +622,9 @@ function openDetailsModal(id) {
   }
   document.getElementById('details-title').textContent = p.name;
   document.getElementById('details-size').textContent = p.caseSize;
+  if (document.getElementById('details-sku')) {
+    document.getElementById('details-sku').textContent = p.sku;
+  }
   document.getElementById('details-desc').innerHTML = p.description;
   document.getElementById('details-price').textContent = '$' + p.price.toFixed(2);
   

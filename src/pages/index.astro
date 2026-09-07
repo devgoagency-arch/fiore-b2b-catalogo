@@ -111,7 +111,7 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
         }
           
         let caseSize = "N/A";
-        const caseRegex = /Case(?: Size)?\s*:\s*([^<\n\.]+)/i;
+        const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([^<\n\.]+)/i;
         const match = plainDesc.match(caseRegex);
 
         if (match && match[1]) {

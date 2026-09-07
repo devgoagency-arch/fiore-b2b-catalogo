@@ -272,7 +272,9 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
       <!-- Content -->
       <div class="flex-1 px-8 py-8 flex flex-col">
         <h3 id="details-title" class="font-cap text-2xl text-carbon leading-snug mb-2 pr-6"></h3>
-        <p class="font-rob text-xs font-medium mb-4" style="color:#888"><span class="font-bold text-brand">Case Size:</span> <span id="details-size"></span></p>
+        <p class="font-rob text-xs font-medium mb-4" style="color:#888">
+          <span class="font-bold text-brand">Case Size:</span> <span id="details-size"></span> &nbsp;&bull;&nbsp; <code id="details-sku" class="font-mono"></code>
+        </p>
         <div id="details-desc" class="font-rob text-sm text-gray-600 leading-relaxed space-y-3 flex-1 mb-6"></div>
         
         <!-- Modal Price & Qty Block -->
