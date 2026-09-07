@@ -60,16 +60,34 @@ const processedProducts = products.map((product) => {
     <!-- Filters rendered by JS -->
     <div id="category-filters-container" class="sticky z-40 bg-cream py-4 mb-8" style="top:96px;">
       <div class="flex flex-col lg:flex-row items-center justify-between gap-4 relative">
-        <!-- Desktop Pills -->
-        <div id="category-filters-desktop" class="hidden sm:flex flex-wrap items-center justify-start gap-2 flex-1"></div>
+        <!-- Desktop Search & Pills -->
+        <div class="hidden sm:flex items-center gap-4 flex-1 flex-wrap">
+          <div class="relative flex-shrink-0">
+            <input type="text" id="global-search-cat" placeholder="Search catalog..." class="border border-gray-200 rounded-full px-4 py-2 text-sm font-rob focus:outline-none focus:border-[#80131d] w-48 transition-colors" oninput="if(window.handleSearch) window.handleSearch(this.value)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <div id="category-filters-desktop" class="flex flex-wrap items-center justify-start gap-2"></div>
+        </div>
         
-        <!-- Mobile Dropdown -->
-        <div id="category-filters-mobile" class="sm:hidden w-full relative">
-          <button onclick="toggleMobileCategories()" type="button" class="w-full flex items-center justify-between bg-white px-4 py-2.5 rounded-full border border-gray-200 text-sm font-medium font-rob shadow-sm">
-            <span id="mobile-category-label">Filter by Category: All</span>
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-          </button>
-          <div id="mobile-category-dropdown" class="hidden absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden"></div>
+        <!-- Mobile Search & Dropdown -->
+        <div id="category-filters-mobile" class="sm:hidden w-full relative flex flex-col gap-3">
+          <!-- Mobile Search Input -->
+          <div class="relative w-full">
+            <input type="text" id="global-search-mobile" placeholder="Search catalog..." class="border border-gray-200 rounded-full px-4 py-2.5 text-sm font-rob focus:outline-none focus:border-[#80131d] w-full transition-colors" oninput="if(window.handleSearch) window.handleSearch(this.value)">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-gray-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+          </div>
+          <!-- Mobile Category Dropdown Button -->
+          <div class="relative w-full">
+            <button onclick="toggleMobileCategories()" type="button" class="w-full flex items-center justify-between bg-white px-4 py-2.5 rounded-full border border-gray-200 text-sm font-medium font-rob shadow-sm">
+              <span id="mobile-category-label">Filter by Category: All</span>
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="mobile-category-dropdown" class="hidden absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-xl shadow-lg z-50 overflow-hidden"></div>
+          </div>
         </div>
 
         <!-- Go to Cart -->
@@ -80,7 +98,7 @@ const processedProducts = products.map((product) => {
     <!-- Products pre-rendered by Astro, visibility toggled by JS -->
     <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-8">
       {processedProducts.map(p => (
-        <div class="prow bg-white rounded-3xl overflow-hidden flex flex-col sm:flex-row items-center p-5 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category}>
+        <div class="prow bg-white rounded-3xl overflow-hidden flex flex-col sm:flex-row items-center p-5 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category} data-search={`${p.name.toLowerCase()} ${p.sku.toLowerCase()} ${(p.description || '').toLowerCase()}`}>
 
           <!-- Product image -->
           <div class="w-full h-48 sm:w-44 sm:h-44 flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
@@ -262,21 +280,47 @@ const allCats = PRODUCTS.map(p => p.category).filter(c => c && c !== 'Uncategori
 const CATEGORIES = [...new Set(allCats)].sort();
 
 let activeCategory = CATEGORIES.length > 0 ? CATEGORIES[0] : '';
+let activeSearch = '';
 let currentPage = 1;
 const pageSize = 20;
 
-function renderFilters() {
-  const cats = [...CATEGORIES];
+window.handleSearch = function(query) {
+  activeSearch = (query || '').toLowerCase().trim();
   
-  // Desktop
+  const topInput = document.getElementById('global-search-top');
+  const catInput = document.getElementById('global-search-cat');
+  const mobInput = document.getElementById('global-search-mobile');
+  
+  if (topInput && topInput.value !== query) topInput.value = query;
+  if (catInput && catInput.value !== query) catInput.value = query;
+  if (mobInput && mobInput.value !== query) mobInput.value = query;
+
+  currentPage = 1;
+  renderProducts(false);
+};
+
+function getFilteredProducts() {
+  return PRODUCTS.filter(p => {
+    const catMatch = activeCategory === 'All' || p.category === activeCategory;
+    let searchMatch = true;
+    if (activeSearch) {
+      const searchString = `${p.name} ${p.sku} ${p.description || ''}`.toLowerCase();
+      searchMatch = searchString.includes(activeSearch);
+    }
+    return catMatch && searchMatch;
+  });
+}
+
+function renderFilters() {
+  const cats = ['All', ...CATEGORIES];
+  
   const desktopContainer = document.getElementById('category-filters-desktop');
   if(desktopContainer) {
     desktopContainer.innerHTML = cats.map(c => `
-      <button onclick="filterProducts('${c}')" type="button" class="btn ${activeCategory === c ? 'btn-red' : 'btn-outline'} px-5 py-2 text-sm font-rob">${c}</button>
+      <button onclick="filterProducts('${c}')" type="button" class="btn ${activeCategory === c ? 'btn-red' : 'btn-outline'} px-5 py-2 text-sm font-rob whitespace-nowrap">${c}</button>
     `).join('');
   }
 
-  // Mobile
   const mobileLabel = document.getElementById('mobile-category-label');
   const mobileDropdown = document.getElementById('mobile-category-dropdown');
   if(mobileLabel && mobileDropdown) {
@@ -297,7 +341,6 @@ function filterProducts(cat) {
   currentPage = 1;
   renderFilters();
   renderProducts(false);
-  // Scroll to top of catalogue section
   const catalogue = document.getElementById('catalogue');
   if (catalogue) {
     const offset = catalogue.getBoundingClientRect().top + window.scrollY - 100;
@@ -306,15 +349,15 @@ function filterProducts(cat) {
 }
 
 function loadMoreProducts() {
-  const filtered = PRODUCTS.filter(p => p.category === activeCategory);
+  const filtered = getFilteredProducts();
   if (currentPage * pageSize >= filtered.length) return;
   currentPage++;
   renderProducts(true);
 }
 
-// ── Render product rows ───────────────────────────────────────
+// -- Render product rows --
 function renderProducts(append = false) {
-  const filtered = PRODUCTS.filter(p => p.category === activeCategory);
+  const filtered = getFilteredProducts();
   const end = currentPage * pageSize;
   
   const allRows = document.querySelectorAll('.prow');
@@ -323,11 +366,13 @@ function renderProducts(append = false) {
     const rowId = parseInt(row.getAttribute('data-id'));
     const p = PRODUCTS.find(x => x.id === rowId);
     
-    if (p && p.category === activeCategory) {
+    if (p) {
       const index = filtered.findIndex(x => x.id === rowId);
       if (index !== -1 && index < end) {
         row.style.display = 'flex';
         row.classList.remove('hidden');
+      } else {
+
       } else {
         row.style.display = 'none';
         row.classList.add('hidden');
@@ -690,3 +735,4 @@ if (sentinelEl) {
   observer.observe(sentinelEl);
 }
 </script>
+
