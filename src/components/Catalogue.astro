@@ -22,7 +22,6 @@ const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAD
 
 const processedProducts = products.map((product) => {
   let quantity = 1;
-  let showUnitPrice = false;
 
   if (product.caseSize && typeof product.caseSize === 'string') {
     const parts = product.caseSize.toLowerCase().split('x');
@@ -30,7 +29,6 @@ const processedProducts = products.map((product) => {
       const parsedQty = parseInt(parts[0].trim(), 10);
       if (!isNaN(parsedQty) && parsedQty > 0) {
         quantity = parsedQty;
-        showUnitPrice = true;
       }
     }
   }
@@ -39,8 +37,7 @@ const processedProducts = products.map((product) => {
 
   return {
     ...product,
-    unitPrice,
-    showUnitPrice
+    unitPrice
   };
 });
 ---
@@ -114,31 +111,34 @@ const processedProducts = products.map((product) => {
           <!-- Info + controls -->
           <div class="flex-1 min-w-0 flex flex-col justify-start items-start w-full h-full">
             
-            <!-- Top section: Title, Case Size, Desc, Details -->
+            <!-- Top section: Title, Desc, Details -->
             <div class="w-full mb-4">
               <h3 class="font-cap leading-snug text-sm sm:text-base lg:text-lg font-bold w-full mb-1" style="color:#80131d">{p.name}</h3>
-              <div class="font-rob text-[12px] sm:text-[13px] font-medium mb-2.5" style="color:#888">
-                <span class="font-bold text-brand">Case Size:</span> {p.caseSize} &nbsp;&bull;&nbsp; <span class="font-mono">{p.sku}</span>
-              </div>
               <p class="font-rob text-gray-500 text-[13px] sm:text-sm leading-relaxed clamp2 w-full mb-3" set:html={p.description}></p>
               <button type="button" onclick={`openDetailsModal(${p.id}); return false;`} class="btn btn-red px-4 py-1 text-[12px]">Details</button>
             </div>
 
-            <!-- Bottom Row: Price & Action (Pushed to bottom) -->
-            <div class="w-full flex flex-row items-end justify-between mt-auto pt-4 border-t border-gray-100 gap-2">
+            <!-- Bottom Row: Case Size, Price, Action -->
+            <div class="w-full flex flex-row items-end justify-between mt-auto pt-4 border-gray-100 gap-2">
               
-              <!-- Price (Left aligned) -->
-              <div class="flex flex-col text-left justify-center">
+              <!-- Case Size & SKU (Left aligned) -->
+              <div class="font-rob text-[12px] sm:text-[13px] font-medium" style="color:#888">
+                <div><span class="font-bold text-brand">Case Size:</span> {p.caseSize}</div>
+                <div class="font-mono mt-1 text-[11px]">SKU: {p.sku}</div>
+              </div>
+
+              <!-- Price (Center aligned) -->
+              <div class="flex flex-col text-center justify-center">
                 <div>
                   <span class="font-cap text-brand text-xl sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
                   <span class="font-rob text-gray-400 text-[11px] sm:text-sm"> / case</span>
                 </div>
-                {p.showUnitPrice && <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} / unit</span>}
+                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} / unit</span>
               </div>
 
               <!-- Qty stepper (Right aligned) -->
               <div class="flex items-center gap-1 rounded-full p-1 flex-shrink-0" style="background:#f5f3ef">
-                <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">−</button>
+                <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">&minus;</button>
                 <input id={`qty-${p.id}`} type="number" value="0" min="0" max="999" aria-label={`Quantity for ${p.name}`} onchange={`setQty(${p.id}, parseInt(this.value)||0)`} oninput={`setQty(${p.id}, parseInt(this.value)||0)`} class="w-10 sm:w-12 text-center bg-transparent font-bold text-sm sm:text-base font-rob focus:outline-none" style="color:#1a1a1a" />
                 <button onclick={`changeQty(${p.id},+1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:#80131d;color:white;box-shadow:0 1px 4px rgba(128,19,29,.3)" onmouseenter="this.style.background='#a81624'" onmouseleave="this.style.background='#80131d'" aria-label="Increase">+</button>
               </div>
@@ -518,7 +518,7 @@ function refreshSummary(units, amt) {
     <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center py-3 last:border-0 gap-3" style="border-bottom:1px solid #f5f3ef">
       <div class="flex-1 min-w-0 pr-4">
         <p class="font-rob font-medium text-base truncate" style="color:#1a1a1a">${p.name}</p>
-        <p class="font-rob text-sm text-gray-400 mt-1"><span class="font-bold text-brand">Case Size:</span> ${p.caseSize} &nbsp;·&nbsp; <code class="font-mono">${p.sku}</code></p>
+        <p class="font-rob text-sm text-gray-400 mt-1"><span class="font-bold text-brand">Case Size:</span> ${p.caseSize} &nbsp;·&nbsp; <code class="font-mono">SKU: ${p.sku}</code></p>
       </div>
       
       <div class="flex items-center justify-between sm:justify-end gap-4 flex-shrink-0">
@@ -674,11 +674,9 @@ function openDetailsModal(id) {
   // Unit price
   const unitWrap = document.getElementById('details-unit-price-wrap');
   const unitSpan = document.getElementById('details-unit-price');
-  if (p.showUnitPrice && unitWrap && unitSpan) {
+  if (unitWrap && unitSpan) {
     unitSpan.textContent = '$' + p.unitPrice;
     unitWrap.classList.remove('hidden');
-  } else if (unitWrap) {
-    unitWrap.classList.add('hidden');
   }
   
   const modalQty = document.getElementById('modal-qty');
@@ -733,4 +731,7 @@ if (sentinelEl) {
   observer.observe(sentinelEl);
 }
 </script>
+
+
+
 
