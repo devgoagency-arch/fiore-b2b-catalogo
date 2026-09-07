@@ -103,28 +103,31 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
           return acc;
         }
 
-        let rawContent = item.description ? item.description : (item.short_description || "");
+        let rawContent = (item.short_description || "") + " " + (item.description || "");
+        let caseSize = "N/A";
+        
+        if (rawContent) {
+          // Extract Case Size before stripping HTML so that < tags or \n properly stop the regex
+          const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([^<\n\.]+)/i;
+          const match = rawContent.match(caseRegex);
+          if (match && match[1]) {
+            caseSize = match[1].trim();
+            rawContent = rawContent.replace(match[0], "");
+          } else {
+            const caseAttr = item.attributes?.find((a: any) => 
+              a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
+            );
+            if (caseAttr && caseAttr.options?.length > 0) {
+              caseSize = caseAttr.options[0];
+            }
+          }
+        }
+
         let plainDesc = "";
         if (rawContent) {
           let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
           plainDesc = preSpaced.replace(/<\/?[^>]+(>|$)/g, " ").replace(/\s+/g, " ").trim();
-        }
-          
-        let caseSize = "N/A";
-        const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([^<\n\.]+)/i;
-        const match = plainDesc.match(caseRegex);
-
-        if (match && match[1]) {
-          caseSize = match[1].trim();
-          plainDesc = plainDesc.replace(match[0], "").trim();
           plainDesc = plainDesc.replace(/^[\.,\-\s]+|[\.,\-\s]+$/g, "");
-        } else {
-          const caseAttr = item.attributes?.find((a: any) => 
-            a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
-          );
-          if (caseAttr && caseAttr.options?.length > 0) {
-            caseSize = caseAttr.options[0];
-          }
         }
 
         let finalPrice = parseFloat(item.price) || 0;
