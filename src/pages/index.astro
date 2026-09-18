@@ -37,7 +37,8 @@ const BASE_PRODUCTS_MOCK = [
   }
 ];
 
-let finalProducts = BASE_PRODUCTS_MOCK;try {
+let finalProducts = BASE_PRODUCTS_MOCK;
+try {
   let rawApiUrl = import.meta.env.WC_API_URL || (typeof process !== 'undefined' ? process.env.WC_API_URL : '');
   const WC_CONSUMER_KEY = import.meta.env.WC_CONSUMER_KEY || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_KEY : '');
   const WC_CONSUMER_SECRET = import.meta.env.WC_CONSUMER_SECRET || (typeof process !== 'undefined' ? process.env.WC_CONSUMER_SECRET : '');
@@ -47,6 +48,55 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
     rawApiUrl = rawApiUrl.replace(/^https?:\/\//i, '').replace(/^ttps?:\/\//i, '');
   }
   const WC_API_URL = rawApiUrl ? 'https://' + rawApiUrl.replace(/\/$/, '') : '';
+
+
+  let sheetData = [];
+  try {
+    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ7-rPVnOyorDjjqfvIaOyDn4k_C7VYkzPQPi6XSkP88qIgSLUGF2TGedKos7HgFMp49J-mJaTPnUUW/pub?output=csv";
+    const sheetRes = await fetch(sheetUrl);
+    if (sheetRes.ok) {
+      const csvText = await sheetRes.text();
+      const lines = csvText.split(/\r?\n/);
+      
+      const parseCsvLine = (line) => {
+        let arr = [];
+        let quote = false;
+        let val = '';
+        for (let i = 0; i < line.length; i++) {
+          let c = line[i], nc = line[i+1];
+          if (c === '"' && quote && nc === '"') { val += '"'; i++; }
+          else if (c === '"') { quote = !quote; }
+          else if (c === ',' && !quote) { arr.push(val); val = ''; }
+          else { val += c; }
+        }
+        arr.push(val);
+        return arr;
+      };
+
+      if (lines.length > 0) {
+        const headers = parseCsvLine(lines[0]).map((h) => h.trim().toLowerCase());
+        const skuIdx = headers.findIndex((h) => h.includes('sku'));
+        const upcIdx = headers.findIndex((h) => h.includes('upc'));
+        const nameIdx = headers.findIndex((h) => h.includes('name'));
+        const srpIdx = headers.findIndex((h) => h.includes('srp'));
+        
+        if (srpIdx >= 0) {
+          for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const row = parseCsvLine(lines[i]);
+            sheetData.push({
+              sku: skuIdx >= 0 ? row[skuIdx]?.trim() : '',
+              upc: upcIdx >= 0 ? row[upcIdx]?.trim() : '',
+              name: nameIdx >= 0 ? row[nameIdx]?.trim() : '',
+              srp: row[srpIdx]?.trim()
+            });
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error("Error fetching Google Sheet", e);
+  }
 
   if (WC_API_URL && WC_CONSUMER_KEY && WC_CONSUMER_SECRET) {
     let page = 1;
@@ -104,25 +154,6 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
         }
 
         let rawContent = (item.short_description || "") + " " + (item.description || "");
-        let caseSize = "N/A";
-        
-        if (rawContent) {
-          // Extract Case Size before stripping HTML so that < tags or \n properly stop the regex
-          const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([^<\n\.]+)/i;
-          const match = rawContent.match(caseRegex);
-          if (match && match[1]) {
-            caseSize = match[1].trim();
-            rawContent = rawContent.replace(match[0], "");
-          } else {
-            const caseAttr = item.attributes?.find((a: any) => 
-              a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
-            );
-            if (caseAttr && caseAttr.options?.length > 0) {
-              caseSize = caseAttr.options[0];
-            }
-          }
-        }
-
         let plainDesc = "";
         if (rawContent) {
           let preSpaced = rawContent.replace(/<br\s*\/?>/gi, " ").replace(/<\/p>/gi, " ");
@@ -130,16 +161,72 @@ let finalProducts = BASE_PRODUCTS_MOCK;try {
           plainDesc = plainDesc.replace(/^[\.,\-\s]+|[\.,\-\s]+$/g, "");
         }
 
+        let caseSize = "N/A";
+        
+        if (plainDesc) {
+          const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([0-9\.\-]+(?:[xX\s]+[0-9\.\-]+)?\s*[a-zA-Z]*)/i;
+          const match = plainDesc.match(caseRegex);
+          if (match && match[1]) {
+            caseSize = match[1].trim();
+          } else {
+            const caseAttr = item.attributes?.find((a: any) => 
+              a.name.toLowerCase() === 'case size' || a.name.toLowerCase() === 'casesize'
+            );
+            if (caseAttr && caseAttr.options?.length > 0) {
+              caseSize = caseAttr.options[0];
+            } else {
+              const weightRegex = /([0-9\.\-]+\s*(?:kg|kilo|g|gr|ml|L)s?(?:\s*x\s*[0-9]+)?|[0-9]+\s*x\s*[0-9\.\-]+\s*(?:kg|kilo|g|gr|ml|L)s?)/i;
+              const weightMatch = plainDesc.match(weightRegex);
+              if (weightMatch && weightMatch[1]) {
+                caseSize = weightMatch[1].trim();
+              }
+            }
+          }
+        }
+
         let finalPrice = parseFloat(item.price) || 0;
 
         if (finalPrice > 0) {
+          let upc = item.global_unique_id || "";
+          if (!upc && item.meta_data && Array.isArray(item.meta_data)) {
+            const upcMeta = item.meta_data.find((m: any) => 
+              m.key === '_wpm_gtin_code' || m.key === '_alg_ean' || m.key === '_gtin' || m.key === '_upc' || m.key === '_barcode' || m.key === 'hwp_var_gtin' || m.key === 'gtin' || m.key === '_ts_gtin'
+            );
+            if (upcMeta && upcMeta.value) {
+              upc = upcMeta.value;
+            }
+          }
+
+          const itemSku = item.sku || `WC-${item.id}`;
+          const itemName = item.name ? item.name.replace(/&amp;/g, '&') : '';
+          
+          let srp = null;
+          if (sheetData && sheetData.length > 0) {
+            const sheetMatch = sheetData.find((s: any) => 
+              (s.sku && s.sku === itemSku) ||
+              (s.upc && s.upc === itemSku) || 
+              (s.name && s.name.toLowerCase().includes(itemName.toLowerCase())) ||
+              (s.name && itemName.toLowerCase().includes(s.name.toLowerCase()))
+            );
+            if (sheetMatch) {
+              if (sheetMatch.srp) {
+                srp = sheetMatch.srp;
+              }
+              if (sheetMatch.upc) {
+                upc = sheetMatch.upc;
+              }
+            }
+          }
+
           const mappedProd = {
             id: item.id,
-            sku: item.sku || `WC-${item.id}`,
-            name: item.name ? item.name.replace(/&amp;/g, '&') : '',
+            sku: itemSku,
+            upc: upc,
+            name: itemName,
             description: plainDesc,
             caseSize: caseSize,
             price: finalPrice,
+            srp: srp,
             img: item.images && item.images.length > 0 ? item.images[0].src : null,
             category: finalCategory,
             brand: item.brands && item.brands.length > 0

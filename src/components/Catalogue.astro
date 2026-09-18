@@ -5,6 +5,7 @@ export interface Props {
   products: {
     id: number;
     sku: string;
+    upc?: string;
     name: string;
     description: string;
     caseSize: string;
@@ -12,6 +13,7 @@ export interface Props {
     img: string;
     category: string;
     brand: string | null;
+    srp?: string | null;
   }[];
 }
 
@@ -22,14 +24,31 @@ const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAD
 
 const processedProducts = products.map((product) => {
   let quantity = 1;
+  let isPerKg = false;
+  let isBoxOfKg = false;
 
   if (product.caseSize && typeof product.caseSize === 'string') {
-    const parts = product.caseSize.toLowerCase().split('x');
-    if (parts.length > 1) {
-      const parsedQty = parseInt(parts[0].trim(), 10);
-      if (!isNaN(parsedQty) && parsedQty > 0) {
-        quantity = parsedQty;
+    const caseLower = product.caseSize.toLowerCase();
+    
+    if (caseLower.includes('x')) {
+      const parts = caseLower.split('x');
+      const firstPart = parts[0].trim();
+      
+      if (firstPart.includes('kg') || firstPart.includes('kilo')) {
+         isPerKg = true;
+         isBoxOfKg = true;
+         const parsedWeight = parseFloat(firstPart.replace(/[^0-9.]/g, ''));
+         if (!isNaN(parsedWeight) && parsedWeight > 0) {
+            quantity = parsedWeight;
+         }
+      } else {
+         const parsedQty = parseInt(firstPart, 10);
+         if (!isNaN(parsedQty) && parsedQty > 0) {
+           quantity = parsedQty;
+         }
       }
+    } else if (caseLower.includes('kg') || caseLower.includes('kilo')) {
+      isPerKg = true;
     }
   }
 
@@ -37,7 +56,10 @@ const processedProducts = products.map((product) => {
 
   return {
     ...product,
-    unitPrice
+    unitPrice,
+    isPerKg,
+    isBoxOfKg,
+    srp: product.srp
   };
 });
 ---
@@ -123,17 +145,19 @@ const processedProducts = products.map((product) => {
               
               <!-- Case Size & SKU (Left aligned) -->
               <div class="font-rob text-[12px] sm:text-[13px] font-medium" style="color:#888">
-                <div><span class="font-bold text-brand">Case Size:</span> {p.caseSize}</div>
+                <div><span class="font-bold text-brand">{p.isPerKg && !p.isBoxOfKg ? 'Weight:' : 'Case Size:'}</span> {p.caseSize}</div>
                 <div class="font-mono mt-1 text-[11px]">SKU: {p.sku}</div>
+                {p.upc && <div class="font-mono mt-1 text-[11px]">UPC: {p.upc}</div>}
               </div>
 
               <!-- Price (Center aligned) -->
               <div class="flex flex-col text-center justify-center">
                 <div>
                   <span class="font-cap text-brand text-xl sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
-                  <span class="font-rob text-gray-400 text-[11px] sm:text-sm"> / case</span>
+                  <span class="font-rob text-gray-400 text-[11px] sm:text-sm">{p.isPerKg && !p.isBoxOfKg ? ' / Kg' : ' / case'}</span>
                 </div>
-                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} / unit</span>
+                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} {p.isPerKg ? '/ Kg' : '/ unit'}</span>
+                {p.srp && <span class="text-[11px] sm:text-sm mt-1 font-bold" style="color:#80131d">SRP: {p.srp}</span>}
               </div>
 
               <!-- Qty stepper (Right aligned) -->
