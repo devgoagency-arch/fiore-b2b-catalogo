@@ -164,7 +164,7 @@ try {
         let caseSize = "N/A";
         
         if (plainDesc) {
-          const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([0-9\.\-]+(?:[xX\s]+[0-9\.\-]+)?\s*[a-zA-Z]*)/i;
+          const caseRegex = /Case(?:\s*[Ss]i[sz]e)?\s*:\s*([0-9\.\-]+(?:[xX×\s]+[0-9\.\-]+)?\s*[a-zA-Z]*)/i;
           const match = plainDesc.match(caseRegex);
           if (match && match[1]) {
             caseSize = match[1].trim();
