@@ -47,8 +47,16 @@ const processedProducts = products.map((product) => {
            quantity = parsedQty;
          }
       }
+    } else if (caseLower.includes('-') && (caseLower.includes('kg') || caseLower.includes('kilo'))) {
+      isPerKg = true;
+      isBoxOfKg = false;
     } else if (caseLower.includes('kg') || caseLower.includes('kilo')) {
       isPerKg = true;
+      isBoxOfKg = true;
+      const parsedWeight = parseFloat(caseLower.replace(/[^0-9.]/g, ''));
+      if (!isNaN(parsedWeight) && parsedWeight > 0) {
+        quantity = parsedWeight;
+      }
     }
   }
 
