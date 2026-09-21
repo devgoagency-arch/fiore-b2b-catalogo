@@ -164,7 +164,7 @@ const processedProducts = products.map((product) => {
                   <span class="font-cap text-brand text-xl sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
                   <span class="font-rob text-gray-400 text-[11px] sm:text-sm">{p.isPerKg && !p.isBoxOfKg ? ' / Kg' : ' / case'}</span>
                 </div>
-                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} {p.isPerKg ? '/ Kg' : '/ unit/tin'}</span>
+                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} {p.isPerKg ? '/ Kg' : (p.name.toLowerCase().includes('triana olivas') ? '/ Unit/tin' : '/ unit')}</span>
                 {p.srp && <span class="text-[11px] sm:text-sm mt-1 font-bold" style="color:#80131d">SRP: ${p.srp}</span>}
               </div>
 
