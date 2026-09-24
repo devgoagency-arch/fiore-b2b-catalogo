@@ -3,7 +3,7 @@
 // Componente de formulario exclusivo para la Landing Page de Google Ads
 
 const makeWebhookAds = import.meta.env.PUBLIC_MAKE_WEBHOOK_ADS || "https://hook.eu1.make.com/YOUR_NEW_ADS_WEBHOOK_HERE";
-const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAADGdWFU5FsRD_Aa5";
+const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAEbsEUSEBLMIyoJO";
 ---
 
 <section id="ads-preorder" class="py-16 bg-cream">
@@ -64,7 +64,7 @@ const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAD
         <!-- 
           CF Turnstile: Variable de entorno configurada en Vercel
         -->
-        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey}></div>
+        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-action="ads_inquiry"></div>
         
         <div class="flex flex-col-reverse sm:flex-row items-center justify-center gap-4">
           <button type="submit" class="btn btn-red px-10 py-3.5 font-cap text-base w-full sm:w-auto">
@@ -134,11 +134,6 @@ const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAD
         if (response.ok) {
           form.reset();
 
-          // Resetear Turnstile widget si existe
-          if (window.turnstile) {
-            window.turnstile.reset();
-          }
-
           // ── ARQUITECTURA DE TRACKING (GTM) ──
           // Disparamos el evento personalizado en el dataLayer para Google Ads
           window.dataLayer = window.dataLayer || [];
@@ -162,6 +157,9 @@ const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAD
           submitBtn.disabled = false;
           submitBtn.style.opacity = '1';
           submitBtn.style.cursor = 'pointer';
+        }
+        if (window.turnstile) {
+          window.turnstile.reset();
         }
       }
     });

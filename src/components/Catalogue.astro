@@ -19,8 +19,8 @@ export interface Props {
 
 const { products } = Astro.props;
 
-const makeWebhookCat = import.meta.env.PUBLIC_MAKE_WEBHOOK_CATALOGUE || "https://hook.eu1.make.com/llk7hmjum559gzf5wg7523d3tf4eg6dv";
-const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAADGdWFU5FsRD_Aa5";
+const makeWebhookCat = import.meta.env.PUBLIC_MAKE_WEBHOOK_CATALOGUE || "https://hook.eu1.make.com/txmgkk3uymfg1gfggyv02oxubf30ivg5";
+const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAEbsEUSEBLMIyoJO";
 
 const processedProducts = products.map((product) => {
   let quantity = 1;
@@ -272,7 +272,7 @@ const processedProducts = products.map((product) => {
 
       <div class="mt-7 text-center">
         <!-- Cloudflare Turnstile Widget -->
-        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-callback="onTurnstileSuccess"></div>
+        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-action="preorder" data-callback="onTurnstileSuccess"></div>
         <div class="flex flex-col-reverse sm:flex-row items-center justify-center gap-4">
           <button type="button" onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="btn btn-outline px-8 py-3.5 font-cap text-base bg-white hover:bg-[#80131d]">
             ↑ Keep Shopping
@@ -663,6 +663,9 @@ async function handleSubmit(e) {
       submitBtn.disabled = false;
       submitBtn.style.opacity = '1';
       submitBtn.style.cursor = 'pointer';
+    }
+    if (window.turnstile) {
+      window.turnstile.reset();
     }
   }
 }
