@@ -272,7 +272,7 @@ const processedProducts = products.map((product) => {
 
       <div class="mt-7 text-center">
         <!-- Cloudflare Turnstile Widget -->
-        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-action="preorder" data-callback="onTurnstileSuccess"></div>
+        <div class="cf-turnstile mb-4 flex justify-center" data-sitekey={turnstileSitekey} data-action="preorder"></div>
         <div class="flex flex-col-reverse sm:flex-row items-center justify-center gap-4">
           <button type="button" onclick="document.getElementById('catalogue')?.scrollIntoView({behavior: 'smooth'})" class="btn btn-outline px-8 py-3.5 font-cap text-base bg-white hover:bg-[#80131d]">
             ↑ Keep Shopping
@@ -634,6 +634,9 @@ async function handleSubmit(e) {
 
   try {
     const webhookUrl = e.target.dataset.webhook;
+    console.log('[DEBUG] Webhook URL target:', webhookUrl);
+    console.log('[DEBUG] Payload being sent:', payload);
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
