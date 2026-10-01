@@ -703,35 +703,80 @@ window.goToForm = function() {
 function openDetailsModal(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
+
+  // Image
   const imgEl = document.getElementById('details-img');
   if (imgEl) {
     imgEl.src = p.img;
     imgEl.setAttribute('data-zoom-src', p.img);
   }
+
+  // Title & description
   document.getElementById('details-title').textContent = p.name;
-  document.getElementById('details-size').textContent = p.caseSize;
-  if (document.getElementById('details-sku')) {
-    document.getElementById('details-sku').textContent = p.sku;
-  }
   document.getElementById('details-desc').innerHTML = p.description;
+
+  // Case Size / Weight label (mirrors card)
+  const caseLabel = document.getElementById('details-case-label');
+  if (caseLabel) caseLabel.textContent = (p.isPerKg && !p.isBoxOfKg) ? 'Weight:' : 'Case Size:';
+  document.getElementById('details-size').textContent = p.caseSize;
+
+  // SKU
+  const skuEl = document.getElementById('details-sku');
+  if (skuEl) skuEl.textContent = p.sku;
+
+  // UPC (show only if present)
+  const upcWrap = document.getElementById('details-upc-wrap');
+  const upcEl = document.getElementById('details-upc');
+  if (upcWrap && upcEl) {
+    if (p.upc) {
+      upcEl.textContent = p.upc;
+      upcWrap.classList.remove('hidden');
+    } else {
+      upcWrap.classList.add('hidden');
+    }
+  }
+
+  // Price
   document.getElementById('details-price').textContent = '$' + p.price.toFixed(2);
-  
+
+  // Price label (/ Kg vs / case)
+  const priceUnitLabel = document.getElementById('details-price-unit-label');
+  if (priceUnitLabel) priceUnitLabel.textContent = (p.isPerKg && !p.isBoxOfKg) ? '/ Kg' : '/ case';
+
   // Unit price
   const unitWrap = document.getElementById('details-unit-price-wrap');
   const unitSpan = document.getElementById('details-unit-price');
+  const unitLabel = document.getElementById('details-unit-label');
   if (unitWrap && unitSpan) {
-    unitSpan.textContent = '$' + p.unitPrice;
+    unitSpan.textContent = p.unitPrice;
+    if (unitLabel) {
+      unitLabel.textContent = p.isPerKg ? '/ Kg' : (p.name.toLowerCase().includes('triana olivas') ? '/ Unit/tin' : '/ unit');
+    }
     unitWrap.classList.remove('hidden');
   }
-  
+
+  // SRP (show only if present)
+  const srpWrap = document.getElementById('details-srp-wrap');
+  const srpEl = document.getElementById('details-srp');
+  if (srpWrap && srpEl) {
+    if (p.srp) {
+      srpEl.textContent = p.srp;
+      srpWrap.classList.remove('hidden');
+    } else {
+      srpWrap.classList.add('hidden');
+    }
+  }
+
+  // Qty
   const modalQty = document.getElementById('modal-qty');
-  if(modalQty) {
+  if (modalQty) {
     modalQty.dataset.id = p.id;
     modalQty.value = p.qty;
   }
-  
+
+  // Subtotal line
   const modalLine = document.getElementById('modal-line');
-  if(modalLine) {
+  if (modalLine) {
     if (p.qty > 0) {
       modalLine.textContent = `Subtotal: $${(p.qty * p.price).toFixed(2)} CAD`;
       modalLine.classList.remove('hidden');
