@@ -123,15 +123,15 @@ const processedProducts = products.map((product) => {
     </div>
 
     <!-- Products pre-rendered by Astro, visibility toggled by JS -->
-    <div id="product-list" class="grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-8">
+    <div id="product-list" class="grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-8">
       {processedProducts.map(p => (
         <div class="prow bg-white rounded-3xl overflow-hidden flex flex-col sm:flex-row items-center p-5 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category} data-search={`${p.name.toLowerCase()} ${p.sku.toLowerCase()} ${(p.description || '').toLowerCase()}`}>
 
           <!-- Product image -->
-          <div class="w-full h-48 sm:w-44 sm:h-44 flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
+          <div class="w-full h-[250px] sm:w-[232px] sm:h-[232px] flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
             {p.img ? (
-              <Image src={p.img} alt={p.name} width={300} height={300} 
-                class="absolute inset-0 w-full h-full object-contain cursor-pointer transition-transform hover:scale-105" 
+              <Image src={p.img} alt={p.name} width={400} height={400} 
+                class="absolute inset-0 w-full h-full object-contain cursor-pointer transition-transform scale-[1.15] hover:scale-[1.25]" 
                 data-zoom-src={p.img} />
             ) : (
               <div class="absolute inset-0 w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs">No Image</div>
@@ -148,31 +148,38 @@ const processedProducts = products.map((product) => {
               <button type="button" onclick={`openDetailsModal(${p.id}); return false;`} class="btn btn-red px-4 py-1 text-[12px]">Details</button>
             </div>
 
-            <!-- Bottom Row: Case Size, Price, Action -->
-            <div class="w-full flex flex-row items-end justify-between mt-auto pt-4 border-gray-100 gap-2">
+            <!-- Bottom Row: Left = Case info · Right = Price + Stepper -->
+            <div class="w-full flex flex-row items-start justify-between mt-auto pt-4 border-t border-gray-100">
               
-              <!-- Case Size & SKU (Left aligned) -->
-              <div class="font-rob text-[12px] sm:text-[13px] font-medium" style="color:#888">
-                <div><span class="font-bold text-brand">{p.isPerKg && !p.isBoxOfKg ? 'Weight:' : 'Case Size:'}</span> {p.caseSize}</div>
-                <div class="font-mono mt-1 text-[11px]">SKU: {p.sku}</div>
-                {p.upc && <div class="font-mono mt-1 text-[11px]">UPC: {p.upc}</div>}
-              </div>
-
-              <!-- Price (Center aligned) -->
-              <div class="flex flex-col text-center justify-center">
-                <div>
-                  <span class="font-cap text-brand text-xl sm:text-2xl leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
-                  <span class="font-rob text-gray-400 text-[11px] sm:text-sm">{p.isPerKg && !p.isBoxOfKg ? ' / Kg' : ' / case'}</span>
+              <!-- Left: Case Size, SKU, UPC -->
+              <div class="font-rob text-[13px]" style="color:#555">
+                <div class="mb-1">
+                  <span class="font-semibold" style="color:#1a1a1a">{p.isPerKg && !p.isBoxOfKg ? 'Weight:' : 'Case Size:'}</span>
+                  <span class="ml-1">{p.caseSize}</span>
                 </div>
-                <span class="text-[11px] sm:text-sm text-gray-500 mt-1">${p.unitPrice} {p.isPerKg ? '/ Kg' : (p.name.toLowerCase().includes('triana olivas') ? '/ Unit/tin' : '/ unit')}</span>
-                {p.srp && <span class="text-[11px] sm:text-sm mt-1 font-bold" style="color:#80131d">SRP: ${p.srp}</span>}
+                <div class="text-[12px]">SKU: {p.sku}</div>
+                {p.upc && <div class="text-[12px] mt-0.5">UPC: {p.upc}</div>}
               </div>
 
-              <!-- Qty stepper (Right aligned) -->
-              <div class="flex items-center gap-1 rounded-full p-1 flex-shrink-0" style="background:#f5f3ef">
-                <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">&minus;</button>
-                <input id={`qty-${p.id}`} type="number" value="0" min="0" max="999" aria-label={`Quantity for ${p.name}`} onchange={`setQty(${p.id}, parseInt(this.value)||0)`} oninput={`setQty(${p.id}, parseInt(this.value)||0)`} class="w-10 sm:w-12 text-center bg-transparent font-bold text-sm sm:text-base font-rob focus:outline-none" style="color:#1a1a1a" />
-                <button onclick={`changeQty(${p.id},+1)`} type="button" class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center font-bold text-lg sm:text-xl leading-none select-none transition-all duration-150" style="background:#80131d;color:white;box-shadow:0 1px 4px rgba(128,19,29,.3)" onmouseenter="this.style.background='#a81624'" onmouseleave="this.style.background='#80131d'" aria-label="Increase">+</button>
+              <!-- Right: Price block + stepper below, right-aligned -->
+              <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                <!-- Price -->
+                <div class="text-right">
+                  <div class="flex items-baseline gap-1 justify-end">
+                    <span class="font-cap text-2xl sm:text-3xl font-bold leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
+                    <span class="font-rob text-gray-400 text-[12px] sm:text-[13px]">{p.isPerKg && !p.isBoxOfKg ? '/ Kg' : '/ case'}</span>
+                  </div>
+                  <div class="font-rob text-gray-500 text-[12px] sm:text-[13px] mt-0.5">
+                    ${p.unitPrice} {p.isPerKg ? '/ Kg' : (p.name.toLowerCase().includes('triana olivas') ? '/ Unit/tin' : '/ unit')}
+                  </div>
+                  {p.srp && <div class="font-rob font-bold text-[12px] sm:text-[13px] mt-0.5" style="color:#80131d">SRP: ${p.srp}</div>}
+                </div>
+                <!-- Qty stepper -->
+                <div class="flex items-center gap-1 rounded-full p-1" style="background:#f5f3ef">
+                  <button onclick={`changeQty(${p.id},-1)`} type="button" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xl leading-none select-none transition-all duration-150" style="background:white;color:#80131d;box-shadow:0 1px 4px rgba(0,0,0,.12)" onmouseenter="this.style.background='#80131d';this.style.color='white'" onmouseleave="this.style.background='white';this.style.color='#80131d'" aria-label="Decrease">&minus;</button>
+                  <input id={`qty-${p.id}`} type="number" value="0" min="0" max="999" aria-label={`Quantity for ${p.name}`} onchange={`setQty(${p.id}, parseInt(this.value)||0)`} oninput={`setQty(${p.id}, parseInt(this.value)||0)`} class="w-10 text-center bg-transparent font-bold text-base font-rob focus:outline-none" style="color:#1a1a1a" />
+                  <button onclick={`changeQty(${p.id},+1)`} type="button" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xl leading-none select-none transition-all duration-150" style="background:#80131d;color:white;box-shadow:0 1px 4px rgba(128,19,29,.3)" onmouseenter="this.style.background='#a81624'" onmouseleave="this.style.background='#80131d'" aria-label="Increase">+</button>
+                </div>
               </div>
             </div>
 
