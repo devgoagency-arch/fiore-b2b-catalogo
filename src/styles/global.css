@@ -12,3 +12,71 @@
   --font-cap: "Capriola", sans-serif;
   --font-rob: "Roboto", sans-serif;
 }
+
+/* ── Shared Product Card / Modal classes ──────────────────────
+   Edit ONLY here to keep card and modal in sync automatically.
+─────────────────────────────────────────────────────────────── */
+
+/* Case Size label + value block */
+.prod-meta {
+  font-family: var(--font-rob);
+  font-size: 13px;
+  color: #555;
+}
+@media (min-width: 640px) {
+  .prod-meta { font-size: 14px; }
+}
+
+/* Case Size / Weight label (bold dark) */
+.prod-meta-label {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+/* SKU / UPC lines */
+.prod-meta-sub {
+  font-size: 12px;
+  color: #555;
+}
+@media (min-width: 640px) {
+  .prod-meta-sub { font-size: 14px; }
+}
+
+/* Main case price ($284.28) */
+.prod-price {
+  font-family: var(--font-cap);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  color: #80131d;
+}
+
+/* "/ case" or "/ Kg" label next to price */
+.prod-price-label {
+  font-family: var(--font-rob);
+  font-size: 12px;
+  color: #9ca3af; /* gray-400 */
+}
+@media (min-width: 640px) {
+  .prod-price-label { font-size: 13px; }
+}
+
+/* Unit price ($23.69 / unit) */
+.prod-unit {
+  font-family: var(--font-rob);
+  font-size: 12px;
+  color: #6b7280; /* gray-500 */
+}
+@media (min-width: 640px) {
+  .prod-unit { font-size: 14px; }
+}
+
+/* SRP */
+.prod-srp {
+  font-family: var(--font-rob);
+  font-size: 12px;
+  color: #80131d;
+}
+@media (min-width: 640px) {
+  .prod-srp { font-size: 14px; }
+}

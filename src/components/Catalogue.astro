@@ -152,27 +152,26 @@ const processedProducts = products.map((product) => {
             <div class="w-full flex flex-row items-start justify-between mt-auto pt-4 border-t border-gray-100">
               
               <!-- Left: Case Size, SKU, UPC -->
-              <div class="font-rob text-[13px] sm:text-[14px]" style="color:#555">
+              <div class="prod-meta">
                 <div class="mb-1">
-                  <span class="font-semibold" style="color:#1a1a1a">{p.isPerKg && !p.isBoxOfKg ? 'Weight:' : 'Case Size:'}</span>
+                  <span class="prod-meta-label">{p.isPerKg && !p.isBoxOfKg ? 'Weight:' : 'Case Size:'}</span>
                   <span class="ml-1">{p.caseSize}</span>
                 </div>
-                <div class="text-[12px] sm:text-[14px]">SKU: {p.sku}</div>
-                {p.upc && <div class="text-[12px] sm:text-[14px] mt-0.5">UPC: {p.upc}</div>}
+                <div class="prod-meta-sub">SKU: {p.sku}</div>
+                {p.upc && <div class="prod-meta-sub mt-0.5">UPC: {p.upc}</div>}
               </div>
 
               <!-- Right: Price block + stepper below, right-aligned -->
               <div class="flex flex-col items-end gap-2 flex-shrink-0">
-                <!-- Price -->
                 <div class="text-right">
                   <div class="flex items-baseline gap-1 justify-end">
-                    <span class="font-cap text-[22px] font-bold leading-none" style="color:#80131d">${p.price.toFixed(2)}</span>
-                    <span class="font-rob text-gray-400 text-[12px] sm:text-[13px]">{p.isPerKg && !p.isBoxOfKg ? '/ Kg' : '/ case'}</span>
+                    <span class="prod-price">${p.price.toFixed(2)}</span>
+                    <span class="prod-price-label">{p.isPerKg && !p.isBoxOfKg ? '/ Kg' : '/ case'}</span>
                   </div>
-                  <div class="font-rob text-[12px] sm:text-[14px] text-gray-500 mt-0.5">
+                  <div class="prod-unit mt-0.5">
                     ${p.unitPrice} {p.isPerKg ? '/ Kg' : (p.name.toLowerCase().includes('triana olivas') ? '/ Unit/tin' : '/ unit')}
                   </div>
-                  {p.srp && <div class="font-rob text-[12px] sm:text-[14px] mt-0.5" style="color:#80131d">SRP: ${p.srp}</div>}
+                  {p.srp && <div class="prod-srp mt-0.5">SRP: ${p.srp}</div>}
                 </div>
                 <!-- Qty stepper -->
                 <div class="flex items-center gap-1 rounded-full p-1" style="background:#f5f3ef">

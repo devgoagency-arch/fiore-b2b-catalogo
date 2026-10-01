@@ -287,29 +287,27 @@ const { title, robots = "noindex, nofollow", gtmId } = Astro.props;
           <div class="flex flex-row items-start justify-between gap-4 mb-4">
             
             <!-- Left: Case Size, SKU, UPC -->
-            <div class="font-rob text-[13px]" style="color:#555">
+            <div class="prod-meta">
               <div class="mb-1">
-                <span id="details-case-label" class="font-semibold" style="color:#1a1a1a">Case Size:</span>
+                <span id="details-case-label" class="prod-meta-label">Case Size:</span>
                 <span id="details-size" class="ml-1"></span>
               </div>
-              <div class="text-[12px]">SKU: <span id="details-sku"></span></div>
-              <div id="details-upc-wrap" class="hidden text-[12px] mt-0.5">UPC: <span id="details-upc"></span></div>
+              <div class="prod-meta-sub">SKU: <span id="details-sku"></span></div>
+              <div id="details-upc-wrap" class="hidden prod-meta-sub mt-0.5">UPC: <span id="details-upc"></span></div>
             </div>
 
             <!-- Right: Price stacked + stepper below -->
             <div class="flex flex-col items-end gap-2 flex-shrink-0">
               <div class="text-right">
                 <div class="flex items-baseline gap-1 justify-end">
-                  <span id="details-price" class="font-cap text-2xl sm:text-3xl font-bold leading-none" style="color:#80131d"></span>
-                  <span id="details-price-unit-label" class="font-rob text-gray-400 text-[12px] sm:text-[13px]">/ case</span>
+                  <span id="details-price" class="prod-price"></span>
+                  <span id="details-price-unit-label" class="prod-price-label">/ case</span>
                 </div>
-                <div id="details-unit-price-wrap" class="hidden mt-0.5 text-right">
-                  <span class="font-rob text-gray-500 text-[12px] sm:text-[13px]">
-                    $<span id="details-unit-price"></span> <span id="details-unit-label">/ unit</span>
-                  </span>
+                <div id="details-unit-price-wrap" class="hidden mt-0.5">
+                  <span class="prod-unit">$<span id="details-unit-price"></span> <span id="details-unit-label">/ unit</span></span>
                 </div>
                 <div id="details-srp-wrap" class="hidden mt-0.5">
-                  <span class="font-rob font-bold text-[12px] sm:text-[13px]" style="color:#80131d">SRP: $<span id="details-srp"></span></span>
+                  <span class="prod-srp">SRP: $<span id="details-srp"></span></span>
                 </div>
               </div>
               <!-- Qty stepper -->
