@@ -128,7 +128,7 @@ const processedProducts = products.map((product) => {
         <div class="prow bg-white rounded-3xl overflow-hidden flex flex-col sm:flex-row items-center p-5 gap-5 shadow-sm transition-colors duration-200 hidden" style="border:1px solid #f0ece6; display: none;" data-id={p.id} data-category={p.category} data-search={`${p.name.toLowerCase()} ${p.sku.toLowerCase()} ${(p.description || '').toLowerCase()}`}>
 
           <!-- Product image -->
-          <div class="w-full h-[250px] sm:w-[232px] sm:h-[232px] flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
+          <div class="w-full h-[200px] sm:w-[232px] sm:h-[232px] flex-shrink-0 bg-white rounded-xl flex items-center justify-center overflow-hidden aspect-square relative" onclick={`openDetailsModal(${p.id})`}>
             {p.img ? (
               <Image src={p.img} alt={p.name} width={400} height={400} 
                 class="absolute inset-0 w-full h-full object-contain cursor-pointer transition-transform scale-[1.15] hover:scale-[1.25]" 
