@@ -605,6 +605,24 @@ async function handleSubmit(e) {
     submitBtn.style.cursor = 'not-allowed';
   }
 
+  const order_items = sel.map(p => ({
+    sku:            p.sku,
+    name:           p.name,
+    category:       p.category || 'Uncategorized',
+    case_size:      p.caseSize,
+    quantity_cases: p.qty,
+    unit_price_cad: p.price,
+    line_total_cad: parseFloat((p.qty * p.price).toFixed(2)),
+  }));
+
+  order_items.sort((a, b) => {
+    const catA = (a.category || '').toLowerCase();
+    const catB = (b.category || '').toLowerCase();
+    if (catA < catB) return -1;
+    if (catA > catB) return 1;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
   const payload = {
     event_type: 'preorder_submission',
     turnstile_token: turnstileToken,
@@ -617,14 +635,7 @@ async function handleSubmit(e) {
       category: document.getElementById('f-category').value,
       notes:    document.getElementById('f-notes').value.trim() || null,
     },
-    order_items: sel.map(p => ({
-      sku:            p.sku,
-      name:           p.name,
-      case_size:      p.caseSize,
-      quantity_cases: p.qty,
-      unit_price_cad: p.price,
-      line_total_cad: parseFloat((p.qty * p.price).toFixed(2)),
-    })),
+    order_items: order_items,
     order_summary: {
       total_cases:  sel.reduce((s,p) => s + p.qty, 0),
       subtotal_cad: parseFloat(sel.reduce((s,p) => s + p.qty*p.price, 0).toFixed(2)),
