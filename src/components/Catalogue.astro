@@ -19,7 +19,6 @@ export interface Props {
 
 const { products } = Astro.props;
 
-const makeWebhookCat = import.meta.env.PUBLIC_MAKE_WEBHOOK_CATALOGUE || "https://hook.eu1.make.com/txmgkk3uymfg1gfggyv02oxubf30ivg5";
 const turnstileSitekey = import.meta.env.PUBLIC_TURNSTILE_SITEKEY || "0x4AAAAAAEbsEUSEBLMIyoJO";
 
 const processedProducts = products.map((product) => {
@@ -232,7 +231,7 @@ const processedProducts = products.map((product) => {
     </div>
 
     <!-- Form -->
-    <form id="order-form" data-webhook={makeWebhookCat} onsubmit="handleSubmit(event)" class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
+    <form id="order-form" onsubmit="handleSubmit(event)" class="bg-white rounded-3xl p-8 shadow-sm border border-cream">
       <div class="grid sm:grid-cols-2 gap-5">
 
         <div class="flex flex-col gap-1.5">
@@ -650,11 +649,7 @@ async function handleSubmit(e) {
   };
 
   try {
-    const webhookUrl = e.target.dataset.webhook;
-    console.log('[DEBUG] Webhook URL target:', webhookUrl);
-    console.log('[DEBUG] Payload being sent:', payload);
-
-    const response = await fetch(webhookUrl, {
+    const response = await fetch('/api/submit', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
